@@ -29,14 +29,16 @@ def extract_text_from_text_based_pdf(pdf_path):
     return pages
 
 def extract_text_from_image_based_pdf(pdf_path, output_dir="output_images"):
-    pages = []
+    all_pages = []
     os.makedirs(output_dir, exist_ok=True)
 
     # Convert PDF pages to images
-    pages = convert_from_path(pdf_path, dpi=300, first_page=8, last_page=10)
-    reader = easyocr.Reader(['vi'])  # Initialize EasyOCR reader
+    pages = convert_from_path(pdf_path, dpi=300)
+    reader = easyocr.Reader(['en'])  # Initialize EasyOCR reader
 
     for page_number, page in enumerate(pages, start=1):
+        if MAX >= 0 and page_number > MAX:
+            break
         st.write(f"Processing page {page_number}...")
         image_path = os.path.join(output_dir, f"page_{page_number}.jpg")
         page.save(image_path, "JPEG")  # Save image for debugging (optional)
@@ -44,9 +46,9 @@ def extract_text_from_image_based_pdf(pdf_path, output_dir="output_images"):
         # Perform OCR
         ocr_result = reader.readtext(image_path)
         page_text = "\n".join([text[1] for text in ocr_result])
-        pages.append(page_text)
+        all_pages.append(page_text)
 
-    return pages
+    return all_pages
 
 def extract_text_from_pdf(pdf_path):
     if is_pdf_text_based(pdf_path):
@@ -59,10 +61,10 @@ def extract_text_from_pdf(pdf_path):
 def convert_text_to_json(pages_arr, model):
     pages = []
     for page_number, text in enumerate(pages_arr, start=1):
-        if page_number< 0 or page_number > MAX:
+        if MAX >= 0 and page_number > MAX:
             break
         table_row = """{ROLL.:0001,COLOR: 11, LENGTH: 82, +L: , CYL: 053/001, NET: 14.76,GROSS: 15.56}"""
-        response = model.generate_content(f"format text to JSON file. Rolls array: {table_row} :{text}")
+        response = model.generate_content(f"format text to JSON file. example of Rolls array: {table_row} :{text}")
         result = response.text
         if result.startswith("```json"):
             start_index = result.find("```json") + 7
@@ -71,15 +73,16 @@ def convert_text_to_json(pages_arr, model):
         else:
             lines = [line.strip() for line in text.split("\n") if line.strip()]
             json_text = {"lines": lines}
+        
         pages.append(json_text)
     json_array = json.dumps({"pages": pages}, indent=4, ensure_ascii=False)
     return json_array
 
 # Streamlit App
-st.title("PDF to JSON with Generative AI")
+st.title("PDF to JSON")
 
 # Input field for API key
-api_key = st.text_input("Enter your Generative AI API Key", type="password")
+api_key = st.text_input("Enter your Google AI API Key", type="password")
 
 if api_key:
     try:
@@ -113,6 +116,7 @@ if api_key:
                 file_name="output.json",
                 mime="application/json"
             )
+            st.code(pages_arr, language="text")
             st.code(json_text, language="json")
 
           

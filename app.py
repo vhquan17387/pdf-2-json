@@ -7,7 +7,7 @@ import google.generativeai as genai
 import json
 
 # Maximum number of pages to process
-MAX = 1
+MAX = -1
 
 def is_pdf_text_based(pdf_path):
     try:
@@ -59,7 +59,7 @@ def extract_text_from_pdf(pdf_path):
 def convert_text_to_json(pages_arr, model):
     pages = []
     for page_number, text in enumerate(pages_arr, start=1):
-        if page_number > MAX:
+        if page_number< 0 or page_number > MAX:
             break
         table_row = """{ROLL.:0001,COLOR: 11, LENGTH: 82, +L: , CYL: 053/001, NET: 14.76,GROSS: 15.56}"""
         response = model.generate_content(f"format text to JSON file. Rolls array: {table_row} :{text}")

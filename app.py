@@ -64,7 +64,7 @@ def convert_text_to_json(pages_arr, model):
         if MAX >= 0 and page_number > MAX:
             break
         table_row = """{ROLL.:0001,COLOR: 11, LENGTH: 82, +L: , CYL: 053/001, NET: 14.76,GROSS: 15.56}"""
-        response = model.generate_content(f"format text to JSON file. example of Rolls array: {table_row} :{text}")
+        response = model.generate_content(f"format text to JSON file. Keep all text to be same as it is. example of Rolls array: {table_row} :{text}")
         result = response.text
         if result.startswith("```json"):
             start_index = result.find("```json") + 7

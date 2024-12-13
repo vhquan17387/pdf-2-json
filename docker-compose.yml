@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  streamlit:
+    image: my-image:latest # Replace with your Docker image
+    container_name: streamlit_app
+    ports:
+      - "8501:8501" # Map the container port 8501 to the host port 8501
+    environment:
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+    volumes:
+      - ./app:/app # Optional: Mount local directory to container
+    restart: always
